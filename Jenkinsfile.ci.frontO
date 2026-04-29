@@ -11,6 +11,8 @@ pipeline {
         NODE_VERSION = '18'
         NPM_CACHE_DIR = "${WORKSPACE}/.npm"
         VITE_CACHE_DIR = "${WORKSPACE}/.vite"
+        NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v18.20.8/bin"
+        PATH = "${env.HOME}/.nvm/versions/node/v18.20.8/bin:${env.PATH}"
     }
     
     options {
@@ -52,6 +54,8 @@ pipeline {
                         
                         # S'assurer que node et npm sont dans le PATH
                         export PATH=$HOME/.nvm/versions/node/v18.20.8/bin:$PATH
+                        # Ajouter au PATH pour la persistance entre stages
+                        echo "export PATH=$HOME/.nvm/versions/node/v18.20.8/bin:\$PATH" >> $HOME/.bashrc
                         node --version
                         npm --version
                     """
