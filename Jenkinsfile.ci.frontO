@@ -255,8 +255,19 @@ pipeline {
                         echo "SonarQube Analysis"
                         
                         sh """
-                            npm run sonar:scan || echo "SonarQube scan terminé avec des warnings"
-                        """
+                        sonar-scanner \\
+                          -Dsonar.projectKey=maghrebia-hr-recommendation-frontend \\
+                          -Dsonar.projectName="Maghrebia HR Recommendation Frontend" \\
+                          -Dsonar.projectVersion=1.0.0 \\
+                          -Dsonar.sources=src \\
+                          -Dsonar.tests=src \\
+                          -Dsonar.test.inclusions="**/*.test.ts,**/*.spec.ts,**/*.test.tsx,**/*.spec.tsx" \\
+                          -Dsonar.test.exclusions="**/node_modules/**,**/dist/**,**/coverage/**" \\
+                          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \\
+                          -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \\
+                          -Dsonar.sourceEncoding=UTF-8 \\
+                          -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/coverage/**,**/*.config.js,**/*.config.ts" || echo "SonarQube scan terminé avec des warnings"
+                    """    """
                         
                         echo "Analyse SonarQube terminée"
                     }
