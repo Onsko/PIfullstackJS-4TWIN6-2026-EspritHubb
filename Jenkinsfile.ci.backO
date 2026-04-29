@@ -37,7 +37,7 @@ pipeline {
                             # Méthode 1: Utiliser NVM (pas besoin de sudo)
                             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
                             export NVM_DIR="$HOME/.nvm"
-                            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                             nvm install 18
                             nvm use 18
                             # Créer liens symboliques pour tout le monde
