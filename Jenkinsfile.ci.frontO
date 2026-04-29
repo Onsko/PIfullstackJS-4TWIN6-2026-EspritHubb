@@ -32,8 +32,15 @@ pipeline {
                     cleanWs()
                     
                     sh """
-                        which node || echo "Node.js not found"
-                        which npm || echo "NPM not found"
+                        # Installer Node.js si non présent
+                        if ! command -v node &> /dev/null; then
+                            echo "Installation de Node.js..."
+                            curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+                            apt-get install -y nodejs
+                        fi
+                        
+                        node --version
+                        npm --version
                     """
                     
                     sh """
