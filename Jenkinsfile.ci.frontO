@@ -31,6 +31,9 @@ pipeline {
                     
                     cleanWs()
                     
+                    // Définir NVM_DIR pour Groovy
+                    env.NVM_DIR = "${env.HOME}/.nvm"
+                    
                     sh """
                         # Installer Node.js si non présent (méthode alternative)
                         if ! command -v node &> /dev/null; then
