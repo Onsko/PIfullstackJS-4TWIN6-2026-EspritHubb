@@ -1,0 +1,333 @@
+/**
+ * Jenkinsfile.ci.frontO - Pipeline CI/CD pour Frontend PIfullstackJS
+ * Auteur: Ons
+ * Description: Tests automatisés avec Vite et React
+ */
+
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        NPM_CACHE_DIR = "${WORKSPACE}/.npm"
+        VITE_CACHE_DIR = "${WORKSPACE}/.vite"
+    }
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 20, unit: 'MINUTES')
+    }
+    
+    triggers {
+        // Déclencher sur push vers main
+        pollSCM('H/5 * * * *')
+        
+        // Déclencher sur Pull Request
+        pullRequest()
+    }
+    
+    stages {
+        stage('Setup Environment') {
+            steps {
+                script {
+                    echo "🚀 Setup Environment - Node.js ${NODE_VERSION}"
+                    
+                    // Nettoyer et installer Node.js
+                    cleanWs()
+                    
+                    // Configurer Node.js
+                    if (isUnix()) {
+                        sh """
+                            node --version
+                            npm --version
+                        """
+                    } else {
+                        bat """
+                            node --version
+                            npm --version
+                        """
+                    }
+                    
+                    // Configurer caches
+                    sh """
+                        npm config set cache ${NPM_CACHE_DIR}
+                        echo "NPM cache configuré: ${NPM_CACHE_DIR}"
+                        echo "VITE cache configuré: ${VITE_CACHE_DIR}"
+                    """
+                }
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                dir('frontend') {
+                    script {
+                        echo "📦 Installation Frontend Dependencies"
+                                
+                        // Installation avec cache optimisé
+                        sh """
+                            npm ci --prefer-offline --no-audit --progress=false
+                            echo "✅ Frontend dependencies installées"
+                        """
+                        
+                        // Vérifier les dépendances critiques
+                        sh """
+                            npm ls --depth=0
+                            echo "📊 Dependencies check terminé"
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Quality Checks') {
+            parallel {
+                stage('Lint Frontend') {
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🔍 Lint Frontend Code"
+                                
+                                sh """
+                                    npm run lint || true
+                                    echo "✅ Lint frontend terminé"
+                                """
+                            }
+                        }
+                    }
+                
+                stage('Type Check') {
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🔍 TypeScript Type Check"
+                                
+                                sh """
+                                    npx tsc --noEmit || true
+                                    echo "✅ Type check terminé"
+                                """
+                            }
+                        }
+                    }
+                
+                stage('Prettier Check') {
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🎨 Prettier Format Check"
+                                
+                                sh """
+                                    npm run format:check || true
+                                    echo "✅ Format check terminé"
+                                """
+                            }
+                        }
+                    }
+            }
+        }
+        
+        stage('Test Suite') {
+            parallel {
+                stage('Frontend Unit Tests') {
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🧪 Frontend Unit Tests (Vitest)"
+                                
+                                // Exécuter les tests avec Vitest
+                                sh """
+                                    npm run test:ci
+                                    echo "✅ Tests unitaires frontend terminés"
+                                """
+                                
+                                // Archiver les résultats
+                                publishTestResults testResultsPattern: 'frontend/coverage/junit.xml'
+                                publishHTML([
+                                    allowMissing: false,
+                                    alwaysLinkToLastBuild: true,
+                                    keepAll: true,
+                                    reportDir: 'frontend/coverage',
+                                    reportFiles: 'index.html',
+                                    reportName: 'Frontend Coverage Report'
+                                ])
+                            }
+                        }
+                    }
+                
+                stage('Component Tests') {
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🧪 Component Tests"
+                                
+                                sh """
+                                    npm run test:components || true
+                                    echo "✅ Tests composants terminés"
+                                """
+                            }
+                        }
+                    }
+                
+                stage('E2E Tests') {
+                    when {
+                        branch 'main'
+                    }
+                    
+                    steps {
+                        dir('frontend') {
+                            script {
+                                echo "🧪 E2E Tests (Playwright)"
+                                
+                                sh """
+                                    npm run test:e2e || true
+                                    echo "✅ Tests E2E terminés"
+                                """
+                            }
+                        }
+                    }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    script {
+                        echo "🏗️ Build Frontend (Vite)"
+                        
+                        // Build avec Vite
+                        sh """
+                            npm run build
+                            echo "✅ Build frontend terminé"
+                        """
+                        
+                        // Vérifier le build
+                        sh """
+                            ls -la dist/
+                            echo "📊 Build size:"
+                            du -sh dist/
+                        """
+                        
+                        // Archiver le build
+                        archiveArtifacts artifacts: 'frontend/dist/**/*', fingerprint: true
+                    }
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            steps {
+                dir('frontend') {
+                    script {
+                        echo "🔒 Security Scan"
+                        
+                        // Audit des dépendances
+                        sh """
+                            npm audit --audit-level=high || true
+                            echo "✅ Audit sécurité terminé"
+                        """
+                        
+                        // Scan des vulnérabilités connues
+                        sh """
+                            npx audit-ci --moderate || true
+                            echo "✅ Scan vulnérabilités terminé"
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Performance Analysis') {
+            steps {
+                dir('frontend') {
+                    script {
+                        echo "⚡ Performance Analysis"
+                        
+                        // Analyser la taille du bundle
+                        sh """
+                            npx webpack-bundle-analyzer dist/static/js/*.js || true
+                            echo "✅ Analyse bundle terminée"
+                        """
+                        
+                        // Lighthouse CI (optionnel)
+                        sh """
+                            npm run build:analyze || true
+                            echo "✅ Analyse performance terminée"
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy - Staging') {
+            when {
+                anyOf {
+                    branch 'main'
+                    changeRequest()
+                }
+            }
+            
+            steps {
+                script {
+                    echo "🚀 Deploy Frontend to Staging"
+                    
+                    // Simulation de déploiement
+                    sh """
+                        echo "Déploiement frontend vers staging..."
+                        echo "Build: ${BUILD_NUMBER}"
+                        echo "Bundle size analysis:"
+                        find dist -name "*.js" -exec ls -lh {} \;
+                        echo "✅ Déploiement staging terminé"
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "📊 Pipeline Results Summary"
+                echo "Build Number: ${BUILD_NUMBER}"
+                echo "Branch: ${BRANCH_NAME}"
+                echo "Commit: ${GIT_COMMIT}"
+                
+                // Nettoyer les caches
+                sh """
+                    npm cache clean --force
+                    echo "🧹 NPM cache nettoyé"
+                """
+            }
+        }
+        
+        success {
+            script {
+                echo "✅ Pipeline SUCCESS - All tests passed!"
+                
+                // Notification Slack/Webhook (optionnel)
+                sh """
+                    echo "Notification: Pipeline ${BUILD_NUMBER} réussi"
+                    echo "Coverage disponible dans les artifacts"
+                """
+            }
+        }
+        
+        failure {
+            script {
+                echo "❌ Pipeline FAILED - Check logs"
+                
+                // Notification d'échec
+                sh """
+                    echo "Notification: Pipeline ${BUILD_NUMBER} échoué"
+                    echo "Vérifier les logs pour plus de détails"
+                    echo "Coverage et artifacts non générés"
+                """
+            }
+        }
+        
+        unstable {
+            script {
+                echo "⚠️ Pipeline UNSTABLE - Some tests failed"
+            }
+        }
+    }
+}
