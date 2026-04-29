@@ -32,8 +32,8 @@ pipeline {
                     cleanWs()
                     
                     sh """
-                        node --version
-                        npm --version
+                        which node || echo "Node.js not found"
+                        which npm || echo "NPM not found"
                     """
                     
                     sh """
@@ -269,7 +269,7 @@ pipeline {
             script {
                 echo "Pipeline Results Summary"
                 echo "Build Number: ${BUILD_NUMBER}"
-                echo "Branch: ${BRANCH_NAME}"
+                echo "Branch: ${env.BRANCH_NAME ?: 'unknown'}"
                 echo "Commit: ${GIT_COMMIT}"
                 
                 sh """
