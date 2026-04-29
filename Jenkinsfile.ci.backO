@@ -72,6 +72,12 @@ pipeline {
             }
         }
         
+        stage('Declarative: Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+        
         stage('Install Dependencies') {
             steps {
                 dir('backend') {
