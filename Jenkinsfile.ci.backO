@@ -31,11 +31,18 @@ pipeline {
                     cleanWs()
                     
                     sh """
-                        # Installer Node.js si non présent
+                        # Installer Node.js si non présent (méthode alternative)
                         if ! command -v node &> /dev/null; then
                             echo "Installation de Node.js..."
-                            curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-                            apt-get install -y nodejs
+                            # Méthode 1: Utiliser NVM (pas besoin de sudo)
+                            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+                            export NVM_DIR="$HOME/.nvm"
+                            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                            nvm install 18
+                            nvm use 18
+                            # Créer liens symboliques pour tout le monde
+                            sudo ln -sf ~/.nvm/versions/node/v18.*/bin/node /usr/local/bin/node
+                            sudo ln -sf ~/.nvm/versions/node/v18.*/bin/npm /usr/local/bin/npm
                         fi
                         
                         node --version
