@@ -43,11 +43,13 @@ pipeline {
                             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                             nvm install 18
                             nvm use 18
-                            # Créer liens symboliques pour tout le monde
-                            sudo ln -sf ~/.nvm/versions/node/v18.*/bin/node /usr/local/bin/node
-                            sudo ln -sf ~/.nvm/versions/node/v18.*/bin/npm /usr/local/bin/npm
+                            # Ajouter au PATH pour le reste du pipeline
+                            echo "export PATH=\$NVM_DIR/versions/node/v18.*/bin:\$PATH" >> ~/.bashrc
+                            export PATH=$NVM_DIR/versions/node/v18.*/bin:$PATH
                         fi
                         
+                        # S'assurer que node et npm sont dans le PATH
+                        export PATH=$HOME/.nvm/versions/node/v18.*/bin:$PATH
                         node --version
                         npm --version
                     """
