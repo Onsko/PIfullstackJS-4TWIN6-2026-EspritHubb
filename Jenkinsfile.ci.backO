@@ -8,10 +8,10 @@ pipeline {
     agent any
     
     environment {
-        NODE_VERSION = '18'
+        NODE_VERSION = '20'
         NPM_CACHE_DIR = "${WORKSPACE}/.npm"
-        NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v18.20.8/bin"
-        PATH = "${env.HOME}/.nvm/versions/node/v18.20.8/bin:${env.PATH}"
+        NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v20.18.0/bin"
+        PATH = "${env.HOME}/.nvm/versions/node/v20.18.0/bin:${env.PATH}"
     }
     
     options {
