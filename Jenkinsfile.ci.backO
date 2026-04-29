@@ -43,13 +43,15 @@ pipeline {
                             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                             nvm install 18
                             nvm use 18
-                            # Ajouter au PATH pour le reste du pipeline
-                            echo "export PATH=\$NVM_DIR/versions/node/v18.*/bin:\$PATH" >> ~/.bashrc
-                            export PATH=$NVM_DIR/versions/node/v18.*/bin:$PATH
+                            # Ajouter au PATH pour le reste du pipeline avec le chemin exact
+                            NODE_BIN_DIR="$NVM_DIR/versions/node/\$(nvm current)/bin"
+                            echo "export PATH=\$NODE_BIN_DIR:\$PATH" >> ~/.bashrc
+                            export PATH=$NODE_BIN_DIR:$PATH
                         fi
                         
-                        # S'assurer que node et npm sont dans le PATH
-                        export PATH=$HOME/.nvm/versions/node/v18.*/bin:$PATH
+                        # S'assurer que node et npm sont dans le PATH avec le chemin exact
+                        NODE_BIN_DIR="$HOME/.nvm/versions/node/\$(nvm current)/bin"
+                        export PATH=$NODE_BIN_DIR:$PATH
                         node --version
                         npm --version
                     """
