@@ -18,10 +18,7 @@ pipeline {
     }
     
     triggers {
-        // Déclencher sur push vers main
         pollSCM('H/5 * * * *')
-        
-        // Déclencher sur Pull Request
         pullRequest()
     }
     
@@ -29,25 +26,15 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 script {
-                    echo "🚀 Setup Environment - Node.js ${NODE_VERSION}"
+                    echo "Setup Environment - Node.js ${NODE_VERSION}"
                     
-                    // Nettoyer et installer Node.js
                     cleanWs()
                     
-                    // Configurer Node.js
-                    if (isUnix()) {
-                        sh """
-                            node --version
-                            npm --version
-                        """
-                    } else {
-                        bat """
-                            node --version
-                            npm --version
-                        """
-                    }
+                    sh """
+                        node --version
+                        npm --version
+                    """
                     
-                    // Configurer cache npm
                     sh """
                         npm config set cache ${NPM_CACHE_DIR}
                         echo "NPM cache configuré: ${NPM_CACHE_DIR}"
@@ -60,12 +47,11 @@ pipeline {
             steps {
                 dir('backend') {
                     script {
-                        echo "📦 Installation Backend Dependencies"
+                        echo "Installation Backend Dependencies"
                                 
-                        // Installation avec cache
                         sh """
                             npm ci --prefer-offline --no-audit --progress=false
-                            echo "✅ Backend dependencies installées"
+                            echo "Backend dependencies installées"
                         """
                     }
                 }
@@ -78,29 +64,31 @@ pipeline {
                     steps {
                         dir('backend') {
                             script {
-                                echo "🔍 Lint Backend Code"
+                                echo "Lint Backend Code"
                                 
                                 sh """
                                     npm run lint || true
-                                    echo "✅ Lint backend terminé"
+                                    echo "Lint backend terminé"
                                 """
                             }
                         }
                     }
+                }
                 
                 stage('Type Check') {
                     steps {
                         dir('backend') {
                             script {
-                                echo "🔍 TypeScript Type Check"
+                                echo "TypeScript Type Check"
                                 
                                 sh """
                                     npx tsc --noEmit || true
-                                    echo "✅ Type check terminé"
+                                    echo "Type check terminé"
                                 """
                             }
                         }
                     }
+                }
             }
         }
         
@@ -110,15 +98,13 @@ pipeline {
                     steps {
                         dir('backend') {
                             script {
-                                echo "🧪 Backend Unit Tests"
+                                echo "Backend Unit Tests"
                                 
-                                // Exécuter tous les tests .spec.ts
                                 sh """
                                     npm run test:ci
-                                    echo "✅ Tests unitaires backend terminés"
+                                    echo "Tests unitaires backend terminés"
                                 """
                                 
-                                // Archiver les résultats
                                 publishTestResults testResultsPattern: 'backend/test-results.xml'
                                 publishHTML([
                                     allowMissing: false,
@@ -131,36 +117,37 @@ pipeline {
                             }
                         }
                     }
+                }
                 
                 stage('Security Tests') {
                     steps {
                         dir('backend') {
                             script {
-                                echo "🔒 Security Tests"
+                                echo "Security Tests"
                                 
-                                // Tests sécurité spécifiques
                                 sh """
                                     npm run test:security || true
-                                    echo "✅ Tests sécurité terminés"
+                                    echo "Tests sécurité terminés"
                                 """
                             }
                         }
                     }
+                }
                 
                 stage('Performance Tests') {
                     steps {
                         dir('backend') {
                             script {
-                                echo "⚡ Performance Tests"
+                                echo "Performance Tests"
                                 
-                                // Tests performance
                                 sh """
                                     npm run test:performance || true
-                                    echo "✅ Tests performance terminés"
+                                    echo "Tests performance terminés"
                                 """
                             }
                         }
                     }
+                }
             }
         }
         
@@ -168,14 +155,13 @@ pipeline {
             steps {
                 dir('backend') {
                     script {
-                        echo "🏗️ Build Backend"
+                        echo "Build Backend"
                                 
                         sh """
                             npm run build
-                            echo "✅ Build backend terminé"
+                            echo "Build backend terminé"
                         """
                         
-                        // Archiver le build
                         archiveArtifacts artifacts: 'backend/dist/**/*', fingerprint: true
                     }
                 }
@@ -192,13 +178,12 @@ pipeline {
             
             steps {
                 script {
-                    echo "🚀 Deploy to Staging"
+                    echo "Deploy to Staging"
                     
-                    // Simulation de déploiement
                     sh """
                         echo "Déploiement vers staging en cours..."
                         echo "Backend: ${BUILD_NUMBER}"
-                        echo "✅ Déploiement staging terminé"
+                        echo "Déploiement staging terminé"
                     """
                 }
             }
@@ -208,24 +193,22 @@ pipeline {
     post {
         always {
             script {
-                echo "📊 Pipeline Results Summary"
+                echo "Pipeline Results Summary"
                 echo "Build Number: ${BUILD_NUMBER}"
                 echo "Branch: ${BRANCH_NAME}"
                 echo "Commit: ${GIT_COMMIT}"
                 
-                // Nettoyer le cache npm
                 sh """
                     npm cache clean --force
-                    echo "🧹 NPM cache nettoyé"
+                    echo "NPM cache nettoyé"
                 """
             }
         }
         
         success {
             script {
-                echo "✅ Pipeline SUCCESS - All tests passed!"
+                echo "Pipeline SUCCESS - All tests passed!"
                 
-                // Notification Slack/Webhook (optionnel)
                 sh """
                     echo "Notification: Pipeline ${BUILD_NUMBER} réussi"
                 """
@@ -234,9 +217,8 @@ pipeline {
         
         failure {
             script {
-                echo "❌ Pipeline FAILED - Check logs"
+                echo "Pipeline FAILED - Check logs"
                 
-                // Notification d'échec
                 sh """
                     echo "Notification: Pipeline ${BUILD_NUMBER} échoué"
                     echo "Vérifier les logs pour plus de détails"
@@ -246,7 +228,7 @@ pipeline {
         
         unstable {
             script {
-                echo "⚠️ Pipeline UNSTABLE - Some tests failed"
+                echo "Pipeline UNSTABLE - Some tests failed"
             }
         }
     }
