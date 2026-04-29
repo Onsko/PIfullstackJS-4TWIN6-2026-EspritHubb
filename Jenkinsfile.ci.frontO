@@ -26,6 +26,12 @@ pipeline {
     }
     
     stages {
+        stage('Declarative: Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+        
         stage('Setup Environment') {
             steps {
                 script {
