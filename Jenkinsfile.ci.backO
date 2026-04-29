@@ -19,7 +19,7 @@ pipeline {
     
     triggers {
         pollSCM('H/5 * * * *')
-        pullRequest()
+        githubPush()
     }
     
     stages {
