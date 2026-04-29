@@ -12,7 +12,7 @@ pipeline {
     }
     
     environment {
-        NODE_VERSION = '20.18.0'
+        NODE_VERSION = '20.19.0'
         NPM_CACHE_DIR = "${WORKSPACE}/.npm"
         VITE_CACHE_DIR = "${WORKSPACE}/.vite"
     }
