@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed:accounts": "ts-node src/scripts/create-three-accounts.ts",
     "seed:competences": "ts-node src/scripts/seed-real-competences.ts",
-    "db:reset:seed": "ts-node src/scripts/reset-and-seed-full.ts"
+    "db:reset:seed": "ts-node src/scripts/reset-and-seed-full.ts",
+    "sonar:scan": "echo 'SonarQube scan pour backend - à configurer avec sonar-scanner'"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.1",

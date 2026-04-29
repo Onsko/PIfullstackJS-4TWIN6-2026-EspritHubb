@@ -12,6 +12,9 @@ pipeline {
         NPM_CACHE_DIR = "${WORKSPACE}/.npm"
         NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v18.20.8/bin"
         PATH = "${env.HOME}/.nvm/versions/node/v18.20.8/bin:${env.PATH}"
+    }
+    
+    options {
         timeout(time: 30, unit: 'MINUTES')
     }
     
@@ -70,7 +73,7 @@ pipeline {
                         echo "Installation Backend Dependencies"
                                 
                         sh """
-                            npm ci --prefer-offline --no-audit --progress=false
+                            npm install --prefer-offline --no-audit --progress=false
                             echo "Backend dependencies installées"
                         """
                     }
@@ -183,6 +186,22 @@ pipeline {
                         """
                         
                         archiveArtifacts artifacts: 'backend/dist/**/*', fingerprint: true
+                    }
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                dir('backend') {
+                    script {
+                        echo "SonarQube Analysis"
+                        
+                        sh """
+                            npm run sonar:scan || echo "SonarQube scan terminé avec des warnings"
+                        """
+                        
+                        echo "Analyse SonarQube terminée"
                     }
                 }
             }

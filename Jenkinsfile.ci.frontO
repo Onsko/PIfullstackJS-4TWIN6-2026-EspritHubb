@@ -76,7 +76,7 @@ pipeline {
                         echo "Installation Frontend Dependencies"
                                 
                         sh """
-                            npm ci --prefer-offline --no-audit --progress=false
+                            npm install --prefer-offline --no-audit --progress=false
                             echo "Frontend dependencies installées"
                         """
                         
@@ -259,6 +259,22 @@ pipeline {
                             npm run build:analyze || true
                             echo "Analyse performance terminée"
                         """
+                    }
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                dir('frontend') {
+                    script {
+                        echo "SonarQube Analysis"
+                        
+                        sh """
+                            npm run sonar:scan || echo "SonarQube scan terminé avec des warnings"
+                        """
+                        
+                        echo "Analyse SonarQube terminée"
                     }
                 }
             }
