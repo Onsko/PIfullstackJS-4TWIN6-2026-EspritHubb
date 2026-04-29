@@ -275,7 +275,7 @@ pipeline {
                         echo "Déploiement frontend vers staging..."
                         echo "Build: ${BUILD_NUMBER}"
                         echo "Bundle size analysis:"
-                        find dist -name "*.js" -exec ls -lh {} \;
+                        find dist -name "*.js" -exec ls -lh {} +
                         echo "✅ Déploiement staging terminé"
                     """
                 }
