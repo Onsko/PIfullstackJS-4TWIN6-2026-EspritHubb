@@ -8,10 +8,8 @@ pipeline {
     agent any
     
     environment {
-        NODE_VERSION = '20'
+        NODE_VERSION = '20.18.0'
         NPM_CACHE_DIR = "${WORKSPACE}/.npm"
-        NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v20.18.0/bin"
-        PATH = "${env.HOME}/.nvm/versions/node/v20.18.0/bin:${env.PATH}"
     }
     
     options {
@@ -31,34 +29,9 @@ pipeline {
                     
                     cleanWs()
                     
-                    // Définir NVM_DIR pour Groovy
-                    env.NVM_DIR = "${env.HOME}/.nvm"
-                    
-                    // Définir les variables d'environnement pour Groovy
-                    env.NODE_BIN_DIR = "${env.HOME}/.nvm/versions/node/v20.18.0/bin"
-                    env.NVM_DIR = "${env.HOME}/.nvm"
-                    
                     sh """
-                        # Installer Node.js si non présent (méthode alternative)
-                        if ! command -v node &> /dev/null; then
-                            echo "Installation de Node.js..."
-                            # Méthode 1: Utiliser NVM (pas besoin de sudo)
-                            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-                            export NVM_DIR="$HOME/.nvm"
-                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                            nvm install 20
-                            nvm use 20
-                        fi
-                        
-                        # S'assurer que node et npm sont dans le PATH
-                        export PATH=$HOME/.nvm/versions/node/v20.18.0/bin:$PATH
-                        # Ajouter au PATH pour la persistance entre stages
-                        echo "export PATH=$HOME/.nvm/versions/node/v20.18.0/bin:\$PATH" >> $HOME/.bashrc
                         node --version
                         npm --version
-                    """
-                    
-                    sh """
                         npm config set cache ${NPM_CACHE_DIR}
                         echo "NPM cache configuré: ${NPM_CACHE_DIR}"
                     """
