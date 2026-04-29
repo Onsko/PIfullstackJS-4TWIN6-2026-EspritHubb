@@ -59,7 +59,8 @@ pipeline {
                         echo "Installation Frontend Dependencies"
                                 
                         sh """
-                            npm install --prefer-offline --no-audit --progress=false
+                            npm cache clean --force
+                            npm install --prefer-offline --no-audit --progress=false --legacy-peer-deps
                             echo "Frontend dependencies installées"
                         """
                         
